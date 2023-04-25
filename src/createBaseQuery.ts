@@ -37,15 +37,19 @@ export function createBaseQuery(
     typeof variables === 'undefined' ? [primaryKey] : [primaryKey, variables]
 
   const useGeneratedQuery = ({
-    variables,
+    variables: newVariables,
     ...currOptions
   }: QueryBaseHookOptions = {}) => {
     const { select: _select, ...prevOptions } = {
       ...defaultOptions,
       ...useDefaultOptions?.(),
     }
+    const prevVariables =
+      'variables' in prevOptions ? prevOptions.variables : undefined
+    const usedVariables =
+      newVariables === undefined ? prevVariables : newVariables
 
-    const queryKey = getKey(variables)
+    const queryKey = getKey(usedVariables)
 
     const { enabled, ...mergedOptions } = {
       ...prevOptions,
@@ -70,7 +74,7 @@ export function createBaseQuery(
         ...mergedOptions,
         enabled:
           typeof enabled === 'function'
-            ? enabled(client.getQueryData(queryKey), variables)
+            ? enabled(client.getQueryData(queryKey), usedVariables)
             : enabled,
       },
       client
